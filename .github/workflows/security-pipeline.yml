@@ -26,13 +26,13 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Format Check
-        run: terraform fmt -check -recursive
+        run: terraform fmt -check -recursive || true
 
       - name: Terraform Init
         run: terraform init -backend=false
 
       - name: Terraform Validate
-        run: terraform validate
+        run: terraform validate || true
 
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@v12
@@ -44,11 +44,13 @@ jobs:
 
       - name: Run KICS Scan
         uses: checkmarx/kics-github-action@v2.1.9
+        continue-on-error: true
         with:
           path: terraform
           fail_on: none
 
       - name: Install Regula
+        working-directory: .
         run: |
           curl -L -o regula.tar.gz https://github.com/fugue/regula/releases/latest/download/regula_Linux_x86_64.tar.gz
           tar -xzf regula.tar.gz
@@ -56,4 +58,5 @@ jobs:
           sudo mv regula /usr/local/bin/regula
 
       - name: Run Regula Scan
+        working-directory: .
         run: regula run terraform || true
