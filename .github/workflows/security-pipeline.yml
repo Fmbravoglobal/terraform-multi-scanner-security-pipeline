@@ -18,16 +18,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Terraform manually
+      - name: Install Terraform
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip
+          sudo apt-get install -y wget unzip curl
           wget https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
           unzip terraform_1.7.5_linux_amd64.zip
           sudo mv terraform /usr/local/bin/
           terraform version
 
-      - name: Terraform Format Check
+      - name: Terraform Format
         working-directory: terraform
         run: terraform fmt -check -recursive || true
 
@@ -39,7 +39,7 @@ jobs:
         working-directory: terraform
         run: terraform validate || true
 
-      - name: Run Checkov
+      - name: Checkov Security Scan
         continue-on-error: true
         uses: bridgecrewio/checkov-action@v12
         with:
@@ -48,7 +48,7 @@ jobs:
           soft_fail: true
           skip_check: CKV_AWS_18,CKV_AWS_144,CKV_AWS_145,CKV2_AWS_61,CKV2_AWS_62
 
-      - name: Run KICS Scan
+      - name: KICS IaC Scan
         continue-on-error: true
         uses: checkmarx/kics-github-action@v2.1.9
         with:
@@ -62,9 +62,9 @@ jobs:
           chmod +x regula
           sudo mv regula /usr/local/bin/regula
 
-      - name: Run Regula Scan
+      - name: Regula Policy Scan
         continue-on-error: true
         run: regula run terraform || true
 
-      - name: Pipeline Completed
-        run: echo "Terraform multi-scanner pipeline completed."
+      - name: Pipeline completed
+        run: echo "Terraform multi-scanner security pipeline finished successfully"
